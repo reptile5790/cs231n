@@ -6,6 +6,7 @@ import numpy as np
 # import pandas as pd
 # import rasterio
 from PIL import Image
+import time
 # import geopandas as gpd
 # import matplotlib.pyplot as plt
 # import numpy as np
@@ -19,9 +20,10 @@ def save_image_tiles(input_directory, output_directory, tile_size=512):
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
 
-    # Iterate over each image in the input directory
-    for filename in os.listdir(input_directory):
+    # Iterate over each image in the input directory with tqdm progress bar
+    for filename in tqdm(os.listdir(input_directory), desc="Processing Images"):
         if filename.lower().endswith('tif'):
+            start_time = time.time()
             input_image_path = os.path.join(input_directory, filename)
             # Load the image using PIL
             image = Image.open(input_image_path)
@@ -35,27 +37,34 @@ def save_image_tiles(input_directory, output_directory, tile_size=512):
             rows = height // tile_size
             cols = width // tile_size
 
-            # Iterate over the split grid
-            for row in range(rows):
-                for col in range(cols):
-                    # Calculate the slice boundaries
-                    x_start = col * tile_size
-                    y_start = row * tile_size
-                    x_end = x_start + tile_size
-                    y_end = y_start + tile_size
+            total_tiles = rows * cols
 
-                    # Extract the slice from the image
-                    slice_image = image.crop((x_start, y_start, x_end, y_end))
-                    # Create a standardized base filename by removing the extension
-                    base_filename = os.path.splitext(filename)[0]
-                    slice_name = os.path.join(output_directory, f"{base_filename}_{slice_count:04d}.png")
+            # Single progress bar for both loops
+            with tqdm(total=total_tiles, desc=f"Tiling {filename}") as pbar:
+                # Iterate over the split grid
+                for row in range(rows):
+                    for col in range(cols):
+                        # Calculate the slice boundaries
+                        x_start = col * tile_size
+                        y_start = row * tile_size
+                        x_end = x_start + tile_size
+                        y_end = y_start + tile_size
 
-                    # Save the slice as an image file
-                    slice_image.save(slice_name)
+                        # Extract the slice from the image
+                        slice_image = image.crop((x_start, y_start, x_end, y_end))
+                        # Create a standardized base filename by removing the extension
+                        base_filename = os.path.splitext(filename)[0]
+                        slice_name = os.path.join(output_directory, f"{base_filename}_{slice_count:04d}.png")
 
-                    slice_count += 1
+                        # Save the slice as an image file
+                        slice_image.save(slice_name)
 
+                        slice_count += 1
+                        pbar.update(1)  # Update the progress bar for each tile
+
+            end_time = time.time()
             print(f'     {slice_count} tiles created and saved for {filename} in {output_directory}.\n')
+            print(f'     Elapsed Time for image = {end_time - start_time:.2f} seconds\n')
     print(f'     Image Tiling Complete.\n\n')
 
 #

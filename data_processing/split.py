@@ -189,8 +189,8 @@ def save_mask_numpy_tiles(input_directory, output_directory, tile_size=512, allo
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
 
-    # Iterate over each image in the input directory
-    for filename in os.listdir(input_directory):
+    # Iterate over each image in the input directory with tqdm progress bar
+    for filename in tqdm(os.listdir(input_directory), desc="Processing Images"):
         if filename.lower().endswith('tif'):
             input_image_path = os.path.join(input_directory, filename)
             # Load the image using PIL
@@ -213,33 +213,35 @@ def save_mask_numpy_tiles(input_directory, output_directory, tile_size=512, allo
             rows = height // tile_size
             cols = width // tile_size
 
-            # Convert the image to a numpy array
-            image_array = np.array(image)
+            total_tiles = rows * cols
 
-            # Iterate over the split grid
-            for row in range(rows):
-                for col in range(cols):
-                    # Calculate the slice boundaries
-                    x_start = col * tile_size
-                    y_start = row * tile_size
-                    x_end = x_start + tile_size
-                    y_end = y_start + tile_size
+            # Single progress bar for both loops
+            with tqdm(total=total_tiles, desc=f"Tiling {filename}") as pbar:
+                # Iterate over the split grid
+                for row in range(rows):
+                    for col in range(cols):
+                        # Calculate the slice boundaries
+                        x_start = col * tile_size
+                        y_start = row * tile_size
+                        x_end = x_start + tile_size
+                        y_end = y_start + tile_size
 
-                    # Extract the slice from the image array
-                    slice_array = image_array[y_start:y_end, x_start:x_end]
+                        # Extract the slice from the image array
+                        slice_array = np.array(image.crop((x_start, y_start, x_end, y_end)))
 
-                    # If allowed_values is provided, set every pixel value to 0 unless it is in the allowed values list
-                    if allowed_values is not None:
-                        slice_array = np.where(np.isin(slice_array, allowed_values), slice_array, 0)
+                        # If allowed_values is provided, set every pixel value to 0 unless it is in the allowed values list
+                        if allowed_values is not None:
+                            slice_array = np.where(np.isin(slice_array, allowed_values), slice_array, 0)
 
-                    # Create a standardized base filename by removing the extension
-                    base_filename = os.path.splitext(filename)[0]
-                    slice_name = os.path.join(output_directory, f"{base_filename}_{slice_count:04d}.npy")
+                        # Create a standardized base filename by removing the extension
+                        base_filename = os.path.splitext(filename)[0]
+                        slice_name = os.path.join(output_directory, f"{base_filename}_{slice_count:04d}.npy")
 
-                    # Save the slice as a numpy array file
-                    np.save(slice_name, slice_array)
+                        # Save the slice as a numpy array file
+                        np.save(slice_name, slice_array)
 
-                    slice_count += 1
+                        slice_count += 1
+                        pbar.update(1)  # Update the progress bar for each tile
 
             print(f'     {slice_count} tiles created and saved for {filename} in {output_directory}.\n')
     print(f'     Mask Tiling Complete.\n\n')

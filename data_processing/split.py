@@ -13,6 +13,7 @@ from PIL import Image
 # from rasterio import mask
 # from skimage.exposure import equalize_adapthist, adjust_gamma, rescale_intensity
 
+Image.MAX_IMAGE_PIXELS = 268468226  # For example
 
 def save_image_tiles(input_directory, output_directory, tile_size=512):
     if not os.path.exists(output_directory):

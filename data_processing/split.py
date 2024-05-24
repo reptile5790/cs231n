@@ -7,6 +7,7 @@ import numpy as np
 # import rasterio
 from PIL import Image
 import time
+from tqdm import tqdm
 # import geopandas as gpd
 # import matplotlib.pyplot as plt
 # import numpy as np

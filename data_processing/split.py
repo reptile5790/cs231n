@@ -229,9 +229,12 @@ def save_mask_numpy_tiles(input_directory, output_directory, tile_size=512, allo
                         # Extract the slice from the image array
                         slice_array = np.array(image.crop((x_start, y_start, x_end, y_end)))
 
-                        # If allowed_values is provided, set every pixel value to 0 unless it is in the allowed values list
+                        # If allowed_values is provided, remap the pixel values
                         if allowed_values is not None:
-                            slice_array = np.where(np.isin(slice_array, allowed_values), slice_array, 0)
+                            remapped_slice = np.zeros_like(slice_array)
+                            for original_value, new_value in allowed_values.items():
+                                remapped_slice[slice_array == original_value] = new_value
+                            slice_array = remapped_slice
 
                         # Create a standardized base filename by removing the extension
                         base_filename = os.path.splitext(filename)[0]

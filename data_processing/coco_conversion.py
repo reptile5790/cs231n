@@ -246,12 +246,3 @@ def json_gen(json_dir, image_dir, mask_dir, class_names, train_ratio=0.8, datase
         json.dump(val_data, f)
 
     print("JSON generation complete.")
-
-
-# Example usage
-image_dir = '/path/to/image_dir'
-mask_dir = '/path/to/mask_dir'
-json_dir = '/path/to/json_dir'
-class_names = ['background', 'class1', 'class2', 'class3', ..., 'class11']
-
-json_gen(json_dir, image_dir, mask_dir, class_names)

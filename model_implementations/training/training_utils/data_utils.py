@@ -28,16 +28,17 @@ def split_train_val(dataset_dicts, train_ratio, dataset_pct=1.0, seed=2013):
     train_indices = set(indices[:int(train_ratio * num_to_use)])
     val_indices = set(indices[int(train_ratio * num_to_use):])
 
-    train_dicts = dataset_dicts[train_indices]
-    val_dicts = dataset_dicts[val_indices]
+    train_dicts = [dataset_dicts[i] for i in train_indices]
+    val_dicts = [dataset_dicts[i] for i in val_indices]
 
     split_dicts = {'train': train_dicts, 'val': val_dicts}
 
-    return train_dicts, val_dicts
+    return split_dicts
 
 
 def build_dataset_dicts(im_dir, mask_dir, train_ratio, dataset_pct=1.0,
                         seed=2013, size=512):
+
     name_association = associate_data(im_dir, mask_dir)
 
     dataset_dicts = []
@@ -55,4 +56,3 @@ def build_dataset_dicts(im_dir, mask_dir, train_ratio, dataset_pct=1.0,
 
     split_dicts = split_train_val(dataset_dicts, train_ratio, dataset_pct, seed)
     return split_dicts
-
